@@ -64,8 +64,8 @@ async function triggerSearch(query, page, shouldClear) {
       }
       switchVisibility(loadMoreButton, false);
     } else {
-      scrollToPageStart(currentPage);
       switchVisibility(loadMoreButton, true);
+      scrollToPageStart(currentPage);
     }
   } catch (e) {
     switchVisibility(loader, false);
