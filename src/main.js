@@ -11,6 +11,7 @@ import {
 } from './js/render-functions.js';
 
 const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
 const loadMoreButton = document.getElementById('load-more');
 const loader = document.querySelector('.loader');
 
@@ -81,15 +82,28 @@ async function triggerSearch(query, page, shouldClear) {
   }
 }
 
+function syncInput(value) {
+  searchInput.value = value;
+}
+
 function handleSearchSubmit(event) {
   event.preventDefault();
   const formData = new FormData(searchForm);
   const formValues = Object.fromEntries(formData);
+  let query = formValues.query?.trim?.() ?? '';
+
+  syncInput(query);
+
+  if (!query) {
+    return;
+  }
+
   switchVisibility(loadMoreButton, false);
-  triggerSearch(formValues.query, DEFAULT_PAGE, true);
+  triggerSearch(query, DEFAULT_PAGE, true);
 }
 
 function loadMore() {
+  syncInput(currentQuery);
   switchVisibility(loadMoreButton, false);
   triggerSearch(currentQuery, currentPage + 1, false);
 }
