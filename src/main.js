@@ -22,6 +22,8 @@ const galleryViewer = new SimpleLightbox('.gallery-item', {
 });
 
 const DEFAULT_PAGE = 1;
+const DEFAULT_LOADED_PICTURES_COUNT = 0;
+let currentLoadedPicturesCount = DEFAULT_LOADED_PICTURES_COUNT;
 let currentPage = DEFAULT_PAGE;
 let currentQuery = '';
 
@@ -33,53 +35,78 @@ async function triggerSearch(query, page, shouldClear) {
   }
 
   try {
-    const pictures = await getPictures(query, page);
+    const result = await getPictures(query, page);
+    const { hits: pictures, totalHits } = result;
     switchVisibility(loader, false);
     addGalleryItems(pictures);
     currentPage = page;
     currentQuery = query;
-    galleryViewer.refresh();
+    if (currentPage === 1) {
+      currentLoadedPicturesCount = DEFAULT_LOADED_PICTURES_COUNT;
+    }
+    currentLoadedPicturesCount += pictures.length;
 
-    if (pictures.length === 0) {
-      if (currentPage === 1) {
-        iziToast.error({
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topRight',
-          iconColor: '#FFF',
-          titleColor: '#FFF',
-          messageColor: '#FFF',
-          backgroundColor: '#EF4040',
-          progressBarColor: '#B51B1B',
-        });
-      } else {
-        iziToast.info({
-          message: "We're sorry, but you've reached the end of search results.",
-          position: 'topRight',
-          iconColor: '#FFF',
-          titleColor: '#FFF',
-          messageColor: '#FFF',
-          backgroundColor: '#0099FF',
-          progressBarColor: '#0071BD',
-        });
-      }
+    galleryViewer.refresh();
+    const isEndOfList = currentLoadedPicturesCount >= totalHits;
+    const isEmptyList = pictures.length === 0;
+
+    if (!isEmptyList && isEndOfList) {
+      showEndOfListToast();
       switchVisibility(loadMoreButton, false);
-    } else {
+    }
+
+    if (isEmptyList) {
+      showNotFoundToast();
+    }
+
+    if (!isEmptyList && !isEndOfList) {
       switchVisibility(loadMoreButton, true);
+    }
+
+    if (!isEmptyList) {
       scrollToPageStart(currentPage);
     }
   } catch (e) {
     switchVisibility(loader, false);
-    iziToast.error({
-      message: `Request failed, please try again later`,
-      position: 'topRight',
-      iconColor: '#FFF',
-      titleColor: '#FFF',
-      messageColor: '#FFF',
-      backgroundColor: '#EF4040',
-      progressBarColor: '#B51B1B',
-    });
+    showRequestFailedToast();
   }
+}
+
+function showNotFoundToast() {
+  iziToast.error({
+    message:
+      'Sorry, there are no images matching your search query. Please try again!',
+    position: 'topRight',
+    iconColor: '#FFF',
+    titleColor: '#FFF',
+    messageColor: '#FFF',
+    backgroundColor: '#EF4040',
+    progressBarColor: '#B51B1B',
+  });
+}
+
+function showEndOfListToast() {
+  iziToast.info({
+    message: "We're sorry, but you've reached the end of search results.",
+    position: 'topRight',
+    iconColor: '#FFF',
+    titleColor: '#FFF',
+    messageColor: '#FFF',
+    backgroundColor: '#0099FF',
+    progressBarColor: '#0071BD',
+  });
+}
+
+function showRequestFailedToast() {
+  iziToast.error({
+    message: `Request failed, please try again later`,
+    position: 'topRight',
+    iconColor: '#FFF',
+    titleColor: '#FFF',
+    messageColor: '#FFF',
+    backgroundColor: '#EF4040',
+    progressBarColor: '#B51B1B',
+  });
 }
 
 function syncInput(value) {

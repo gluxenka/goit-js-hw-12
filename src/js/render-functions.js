@@ -1,4 +1,4 @@
-import { pageLimit } from './pixabay-api.js';
+import { defaultPerPage } from './pixabay-api.js';
 
 const galleryContainer = document.querySelector('.gallery');
 
@@ -23,7 +23,9 @@ export function clearGallery() {
 }
 
 export function scrollToPageStart(page) {
-  const firstPageItem = galleryContainer.children.item(pageLimit * (page - 1));
+  const firstPageItem = galleryContainer.children.item(
+    defaultPerPage * (page - 1)
+  );
 
   firstPageItem?.scrollIntoView({
     inline: 'start',
